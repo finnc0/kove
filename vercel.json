@@ -1,0 +1,5 @@
+{
+  "crons": [
+    { "path": "/api/cron/refine-estimates", "schedule": "0 */6 * * *" }
+  ]
+}
