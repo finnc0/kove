@@ -8,7 +8,10 @@ const plusJakarta = Plus_Jakarta_Sans({
   weight: ["300", "400", "500", "600", "700", "800"],
 });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://kove.app";
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+  "https://kove.app";
 const TITLE = "Kove — AI Market Research for Founders";
 const DESCRIPTION =
   "Map competitors, surface user pain points, and find product gaps in minutes — powered by live App Store data and AI. Built for startup founders who need clarity before they build.";

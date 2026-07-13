@@ -54,8 +54,8 @@ export async function scrapeMarketData(
       const desc = metaMatch[1]
 
       // Pattern: "were 7m downloads and $900k revenue"
-      const dlMatch  = desc.match(/(?:were\s+)?([\d,.]+[kmb]?)\s+downloads?/i)
-      const revMatch = desc.match(/\$([\d,.]+[kmb]?)\s+revenue/i)
+      const dlMatch  = desc.match(/were\s+(\d[\d,.]*\s*[kmb]?)\s+downloads?/i)
+      const revMatch = desc.match(/\$(\d[\d,.]*\s*[kmb]?)\s+revenue/i)
 
       const downloads = dlMatch  ? parseKpi(dlMatch[1])  : null
       const revenue   = revMatch ? parseKpi(revMatch[1]) : null
