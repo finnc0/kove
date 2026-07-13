@@ -1,3 +1,5 @@
+export const maxDuration = 60;
+
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";

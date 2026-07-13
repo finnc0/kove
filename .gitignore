@@ -52,3 +52,5 @@ Thumbs.db
 
 # playwright browsers
 /playwright/.cache/
+.vercel
+.env*
