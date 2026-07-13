@@ -2,10 +2,15 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import { KoveLogo } from "@/components/KoveLogo";
 import { cn } from "@/lib/utils";
 
-export function Nav() {
+interface NavProps {
+  isSignedIn?: boolean;
+}
+
+export function Nav({ isSignedIn }: NavProps) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -27,18 +32,37 @@ export function Nav() {
           <KoveLogo className="h-6 w-auto" />
         </Link>
         <div className="flex items-center gap-2">
-          <Link
-            href="/sign-in"
-            className="px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:text-white"
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/sign-up"
-            className="rounded-lg bg-white px-4 py-1.5 text-sm font-medium text-zinc-950 transition-colors hover:bg-zinc-100"
-          >
-            Get started
-          </Link>
+          {isSignedIn ? (
+            <>
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:text-white"
+              >
+                Sign out
+              </button>
+              <Link
+                href="/dashboard"
+                className="rounded-lg bg-white px-4 py-1.5 text-sm font-medium text-zinc-950 transition-colors hover:bg-zinc-100"
+              >
+                Dashboard
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/sign-in"
+                className="px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:text-white"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/sign-up"
+                className="rounded-lg bg-white px-4 py-1.5 text-sm font-medium text-zinc-950 transition-colors hover:bg-zinc-100"
+              >
+                Get started
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

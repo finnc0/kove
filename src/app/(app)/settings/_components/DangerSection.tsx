@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -25,7 +26,7 @@ export function DangerSection() {
     setDeleting(false);
     if (!res.ok) return;
     setOpen(false);
-    router.push("/");
+    await signOut({ callbackUrl: "/" });
   }
 
   return (

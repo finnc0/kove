@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { auth } from "@/auth";
 import { DotGrid } from "./_components/DotGrid";
 import { Nav } from "./_components/Nav";
 import { Hero } from "./_components/Hero";
@@ -17,11 +18,12 @@ export const metadata: Metadata = {
     "Analyze your competitors' downloads, revenue, pricing, and reviews — then find the gap worth building into.",
 };
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await auth();
   return (
     <div className="relative min-h-screen bg-zinc-950">
       <DotGrid />
-      <Nav />
+      <Nav isSignedIn={!!session?.user} />
       <main>
         <Hero />
         <HowItWorksScreens />
