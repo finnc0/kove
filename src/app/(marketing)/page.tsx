@@ -12,7 +12,6 @@ import { IdeaNodeDemo } from "./_components/IdeaNodeDemo";
 import { WhyFounders } from "./_components/WhyFounders";
 import { ClosingCTA } from "./_components/ClosingCTA";
 import { DataPrivacy } from "./_components/DataPrivacy";
-import { AppPurpose } from "./_components/AppPurpose";
 
 export const metadata: Metadata = {
   title: "Kove — AI Market Research for Founders",
@@ -28,7 +27,6 @@ export default async function LandingPage() {
       <Nav isSignedIn={!!session?.user} />
       <main>
         <Hero />
-        <AppPurpose />
         <HowItWorksScreens />
         <CompetitorReportDemo />
         <SignalStrengthDemo />
