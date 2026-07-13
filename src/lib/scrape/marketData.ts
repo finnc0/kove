@@ -1,5 +1,4 @@
 import { parseKpi } from './parseKpi'
-import appStoreScraper from 'app-store-scraper'
 
 export interface ScrapeResult {
   ok: boolean
@@ -8,48 +7,70 @@ export interface ScrapeResult {
   error?: string
 }
 
-// Industry-standard approximation: iOS users rate at roughly 1-in-40 installs.
-// Lifetime installs → monthly active at ~10% → monthly downloads ~10% of active.
-const RATINGS_TO_LIFETIME = 40
-const LIFETIME_TO_MONTHLY = 0.10
+const ST_UA =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
 
+/**
+ * Fetches download + revenue estimates from SensorTower using plain HTTP.
+ * SensorTower embeds "X downloads and $Y revenue" in the page meta description,
+ * publicly, no login required — one GET request, no browser.
+ */
 export async function scrapeMarketData(
   appStoreId: string,
   country = 'US',
 ): Promise<ScrapeResult> {
   try {
-    const appData = await appStoreScraper.app({
-      id: Number(appStoreId),
-      country: country.toLowerCase(),
-    }) as {
-      ratings?: number
-      ratingCount?: number
-      price?: number
-      free?: boolean
+    const url = `https://app.sensortower.com/ios/${country.toUpperCase()}/-/app/-/${appStoreId}/overview`
+
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': ST_UA,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
+        'Upgrade-Insecure-Requests': '1',
+      },
+      redirect: 'follow',
+    })
+
+    if (!res.ok) {
+      return { ok: false, downloads: null, revenue: null, error: `HTTP ${res.status}` }
     }
 
-    const ratingCount: number = (appData.ratings ?? appData.ratingCount) ?? 0
-    if (!ratingCount) {
-      return { ok: false, downloads: null, revenue: null, error: 'No rating data' }
+    const html = await res.text()
+
+    // SensorTower puts estimates in the page meta description:
+    // "Last month's estimates were 7m downloads and $900k revenue."
+    const metaMatch = html.match(
+      /<meta[^>]+name="description"[^>]+content="([^"]*)"[^>]*>/i,
+    ) ?? html.match(
+      /<meta[^>]+content="([^"]*)"[^>]+name="description"[^>]*>/i,
+    )
+
+    if (metaMatch) {
+      const desc = metaMatch[1]
+
+      // Pattern: "were 7m downloads and $900k revenue"
+      const dlMatch  = desc.match(/(?:were\s+)?([\d,.]+[kmb]?)\s+downloads?/i)
+      const revMatch = desc.match(/\$([\d,.]+[kmb]?)\s+revenue/i)
+
+      const downloads = dlMatch  ? parseKpi(dlMatch[1])  : null
+      const revenue   = revMatch ? parseKpi(revMatch[1]) : null
+
+      if (downloads !== null || revenue !== null) {
+        return { ok: true, downloads, revenue }
+      }
     }
 
-    const lifetimeDownloads = ratingCount * RATINGS_TO_LIFETIME
-    const monthlyDownloads  = Math.round(lifetimeDownloads * LIFETIME_TO_MONTHLY)
-
-    const price = appData.price ?? 0
-    // Paid app: monthly new installs × price
-    // Free app: 3% subscription conversion × $6/mo average
-    const monthlyRevenue = price > 0
-      ? Math.round(monthlyDownloads * price)
-      : Math.round(monthlyDownloads * 0.03 * 6)
-
-    return { ok: true, downloads: monthlyDownloads, revenue: monthlyRevenue }
+    return { ok: false, downloads: null, revenue: null, error: 'Estimates not found in page' }
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err)
-    console.error('[marketData] estimate failed', appStoreId, error)
+    console.error('[marketData] ST fetch failed', appStoreId, error)
     return { ok: false, downloads: null, revenue: null, error }
   }
 }
 
-// Re-export parseKpi in case it's needed elsewhere
 export { parseKpi }
