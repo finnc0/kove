@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { SettingsCard } from "./SettingsCard";
 
@@ -17,20 +18,36 @@ function GoogleIcon() {
 
 interface Props {
   googleConnected: boolean;
+  hasPassword: boolean;
 }
 
-export function ConnectedSection({ googleConnected }: Props) {
+export function ConnectedSection({ googleConnected, hasPassword }: Props) {
   const [connected, setConnected] = useState(googleConnected);
+  const [loading, setLoading] = useState(false);
 
-  function handleToggle() {
-    if (connected) {
-      console.log("Disconnect Google — stub");
+  async function handleConnect() {
+    await signIn("google", { callbackUrl: "/settings" });
+  }
+
+  async function handleDisconnect() {
+    if (!hasPassword) {
+      toast.error("Set a password before disconnecting Google.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/disconnect-google", { method: "POST" });
+      if (!res.ok) {
+        const { error } = await res.json();
+        toast.error(error ?? "Failed to disconnect.");
+        return;
+      }
       setConnected(false);
-      toast.success("Google account disconnected");
-    } else {
-      console.log("Connect Google — stub");
-      setConnected(true);
-      toast.success("Google account connected");
+      toast.success("Google account disconnected.");
+    } catch {
+      toast.error("Something went wrong.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -54,14 +71,15 @@ export function ConnectedSection({ googleConnected }: Props) {
         </div>
 
         <button
-          onClick={handleToggle}
-          className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+          onClick={connected ? handleDisconnect : handleConnect}
+          disabled={loading}
+          className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${
             connected
               ? "border-white/[0.08] text-zinc-400 hover:text-red-400 hover:border-red-400/30"
               : "border-white/[0.12] text-zinc-300 hover:border-white/25 hover:text-white"
           }`}
         >
-          {connected ? "Disconnect" : "Connect"}
+          {loading ? "..." : connected ? "Disconnect" : "Connect"}
         </button>
       </div>
 

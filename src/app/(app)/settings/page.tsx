@@ -44,7 +44,7 @@ export default async function SettingsPage() {
           <BillingSection />
           <AccountSection initialName={user.name ?? ""} initialEmail={user.email ?? ""} />
           {user.password && <PasswordSection />}
-          <ConnectedSection googleConnected={googleConnected} />
+          <ConnectedSection googleConnected={googleConnected} hasPassword={!!user.password} />
           <DangerSection />
         </div>
       </div>
