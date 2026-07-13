@@ -36,21 +36,9 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <p className="text-xs text-zinc-700">© 2025 Kove Labs</p>
           <div className="flex items-center gap-6">
-            {["Product", "Pricing", "About"].map((l) => (
-              <a
-                key={l}
-                href="#"
-                className="text-xs text-zinc-500 transition-colors hover:text-zinc-400"
-              >
-                {l}
-              </a>
-            ))}
-            <Link
-              href="/sign-in"
-              className="text-xs text-zinc-500 transition-colors hover:text-zinc-400"
-            >
-              Sign in
-            </Link>
+            <Link href="/terms" className="text-xs text-zinc-500 transition-colors hover:text-zinc-400">Terms</Link>
+            <Link href="/privacy" className="text-xs text-zinc-500 transition-colors hover:text-zinc-400">Privacy</Link>
+            <Link href="/sign-in" className="text-xs text-zinc-500 transition-colors hover:text-zinc-400">Sign in</Link>
           </div>
         </div>
       </footer>

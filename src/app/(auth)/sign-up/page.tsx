@@ -120,7 +120,7 @@ export default function SignUpPage() {
         <Link href="/sign-in" className="font-medium text-zinc-300 hover:text-white transition-colors">Sign in</Link>
       </p>
       <p className="mt-3 text-center text-xs text-zinc-700">
-        By creating an account you agree to our <a href="#" className="hover:text-zinc-500 underline underline-offset-2">Terms</a> and <a href="#" className="hover:text-zinc-500 underline underline-offset-2">Privacy Policy</a>
+        By creating an account you agree to our <Link href="/terms" className="hover:text-zinc-500 underline underline-offset-2">Terms</Link> and <Link href="/privacy" className="hover:text-zinc-500 underline underline-offset-2">Privacy Policy</Link>
       </p>
     </div>
   );
