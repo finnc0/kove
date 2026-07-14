@@ -145,11 +145,16 @@ interface Props {
   hasUsedTrial?: boolean;
 }
 
-// Fallback prices shown if Stripe fetch fails
-const FALLBACK = { monthly: { amount: "29", currency: "usd" }, annual: { amount: "19", currency: "usd" } };
-
 interface PriceData { amount: string; currency: string }
-interface Prices { monthly: PriceData; annual: PriceData }
+interface Prices {
+  monthly: PriceData | null;
+  annual: PriceData | null;
+}
+
+const FALLBACK: Prices = {
+  monthly: { amount: "29", currency: "usd" },
+  annual:  { amount: "19", currency: "usd" },
+};
 
 export function PaywallModal({ open, onClose, gate }: Props) {
   const [plan, setPlan] = useState<"monthly" | "annual">("annual");
@@ -165,7 +170,13 @@ export function PaywallModal({ open, onClose, gate }: Props) {
     if (!open || prices) return;
     fetch("/api/billing/prices")
       .then(r => r.ok ? r.json() : null)
-      .then(d => setPrices(d ?? FALLBACK))
+      .then((d: Prices | null) => {
+        if (!d) { setPrices(FALLBACK); return; }
+        setPrices({
+          monthly: d.monthly ?? FALLBACK.monthly,
+          annual:  d.annual  ?? FALLBACK.annual,
+        });
+      })
       .catch(() => setPrices(FALLBACK));
   }, [open, prices]);
 
@@ -193,9 +204,11 @@ export function PaywallModal({ open, onClose, gate }: Props) {
     }
   }
 
-  const activePriceData = (prices ?? FALLBACK)[plan];
+  const resolved = prices ?? FALLBACK;
+  const activePriceData = resolved[plan] ?? (plan === "annual" ? FALLBACK.annual : FALLBACK.monthly)!;
   const priceDisplay = `$${activePriceData.amount}/mo`;
-  const annualTotal = `$${(parseFloat((prices ?? FALLBACK).annual.amount) * 12).toFixed(0)}/yr`;
+  const annualAmount = (resolved.annual ?? FALLBACK.annual)!.amount;
+  const annualTotal = `$${(parseFloat(annualAmount) * 12).toFixed(0)}/yr`;
   const priceSub = plan === "annual" ? `billed ${annualTotal}` : "billed monthly";
 
   if (!mounted) return null;
