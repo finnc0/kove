@@ -145,6 +145,9 @@ interface Props {
   hasUsedTrial?: boolean;
 }
 
+// Fallback prices shown if Stripe fetch fails
+const FALLBACK = { monthly: { amount: "29", currency: "usd" }, annual: { amount: "19", currency: "usd" } };
+
 interface PriceData { amount: string; currency: string }
 interface Prices { monthly: PriceData; annual: PriceData }
 
@@ -153,6 +156,7 @@ export function PaywallModal({ open, onClose, gate }: Props) {
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [prices, setPrices] = useState<Prices | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const reduced = useReducedMotion();
 
   useEffect(() => { setMounted(true); }, []);
@@ -161,13 +165,14 @@ export function PaywallModal({ open, onClose, gate }: Props) {
     if (!open || prices) return;
     fetch("/api/billing/prices")
       .then(r => r.ok ? r.json() : null)
-      .then(d => d && setPrices(d))
-      .catch(() => {});
+      .then(d => setPrices(d ?? FALLBACK))
+      .catch(() => setPrices(FALLBACK));
   }, [open, prices]);
 
   const meta = GATE_META[gate];
 
   async function handleCheckout() {
+    setCheckoutError(null);
     setLoading(true);
     try {
       const res = await fetch("/api/billing/checkout", {
@@ -175,24 +180,23 @@ export function PaywallModal({ open, onClose, gate }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan }),
       });
+      const data = await res.json();
       if (!res.ok) {
-        const text = await res.text();
-        console.error("[checkout]", res.status, text);
+        setCheckoutError(data?.error ?? "Something went wrong. Please try again.");
         return;
       }
-      const data = await res.json();
       if (data.url) window.location.href = data.url;
+    } catch {
+      setCheckoutError("Could not connect. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
-  const activePriceData = prices?.[plan];
-  const priceDisplay = activePriceData ? `$${activePriceData.amount}/mo` : "—";
-  const annualTotal = prices?.annual ? `$${(parseFloat(prices.annual.amount) * 12).toFixed(0)}/yr` : null;
-  const priceSub = plan === "annual"
-    ? (annualTotal ? `billed ${annualTotal}` : "billed annually")
-    : "billed monthly";
+  const activePriceData = (prices ?? FALLBACK)[plan];
+  const priceDisplay = `$${activePriceData.amount}/mo`;
+  const annualTotal = `$${(parseFloat((prices ?? FALLBACK).annual.amount) * 12).toFixed(0)}/yr`;
+  const priceSub = plan === "annual" ? `billed ${annualTotal}` : "billed monthly";
 
   if (!mounted) return null;
 
@@ -255,6 +259,9 @@ export function PaywallModal({ open, onClose, gate }: Props) {
 
                 {/* Primary CTA */}
                 <div className="space-y-2">
+                  {checkoutError && (
+                    <p className="text-center text-xs text-red-400">{checkoutError}</p>
+                  )}
                   <button
                     onClick={handleCheckout}
                     disabled={loading}
