@@ -1,4 +1,4 @@
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, TriangleAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { AppSearchResult } from "@/app/api/search/route";
 import type { NodeType } from "./SearchStep";
@@ -7,8 +7,15 @@ interface Props {
   url: string;
   type: NodeType;
   meta?: AppSearchResult;
+  existingCategories?: string[];
   onConfirm: () => void;
   onBack: () => void;
+}
+
+function isNicheMismatch(genre: string, existing: string[]): boolean {
+  if (!genre || existing.length === 0) return false;
+  const g = genre.toLowerCase();
+  return !existing.some((c) => c.toLowerCase() === g);
 }
 
 function platformsFor(url: string, meta?: AppSearchResult): string[] {
@@ -16,10 +23,11 @@ function platformsFor(url: string, meta?: AppSearchResult): string[] {
   return ["Web"];
 }
 
-export function ConfirmStep({ url, type, meta, onConfirm, onBack }: Props) {
+export function ConfirmStep({ url, type, meta, existingCategories = [], onConfirm, onBack }: Props) {
   const name = meta?.name ?? url.replace(/https?:\/\//, "").split("/")[0];
   const platforms = platformsFor(url, meta);
   const iconUrl = meta?.iconUrl;
+  const showNicheWarning = meta?.genre ? isNicheMismatch(meta.genre, existingCategories) : false;
 
   return (
     <div className="w-full">
@@ -63,6 +71,17 @@ export function ConfirmStep({ url, type, meta, onConfirm, onBack }: Props) {
           )}
         </div>
       </div>
+
+      {showNicheWarning && (
+        <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+          <p className="text-xs leading-relaxed text-amber-300">
+            <span className="font-medium">Niche mismatch — </span>
+            This app is in <span className="font-medium">{meta?.genre}</span>, while your other competitors are in{" "}
+            <span className="font-medium">{existingCategories.slice(0, 2).join(", ")}</span>. Adding it may skew your findings.
+          </p>
+        </div>
+      )}
 
       <div className="mt-8 flex flex-col items-center gap-3">
         <button

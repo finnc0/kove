@@ -570,56 +570,58 @@ function CanvasContent({
         n.id === "gap-node" ? { ...n, data: { ...n.data, refreshing: true } } : n,
       ),
     );
-    try {
-      const res = await fetch(`/api/workspaces/${workspaceId}/findings/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ force: true }),
-      });
-      if (!res.ok || !res.body) throw new Error("Request failed");
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buf = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buf += decoder.decode(value, { stream: true });
-        const parts = buf.split("\n\n");
-        buf = parts.pop() ?? "";
-        for (const chunk of parts) {
-          if (!chunk.startsWith("data:")) continue;
-          try {
-            const msg = JSON.parse(chunk.slice(5).trim()) as {
-              type: string;
-              synthesis?: { featureGaps?: Array<{ title: string; opportunity?: string }> };
-            };
-            if (msg.type === "complete" && msg.synthesis?.featureGaps?.[0]) {
-              const { title, opportunity } = msg.synthesis.featureGaps[0];
-              const newGap: CanvasGapInfo = { title, opportunity: opportunity ?? "" };
-              setLiveGap(newGap);
-              setNodes((prev) =>
-                prev.map((n) =>
-                  n.id === "gap-node"
-                    ? {
-                        ...n,
-                        data: {
-                          ...n.data,
-                          gapTitle: newGap.title,
-                          opportunity: newGap.opportunity,
-                          refreshing: false,
-                          onRefresh: () => gapRefreshRef.current(),
-                        },
-                      }
-                    : n,
-                ),
-              );
-            }
-          } catch {}
+
+    const startedAt = new Date().toISOString();
+
+    function applyNewGap(newGap: CanvasGapInfo) {
+      setLiveGap(newGap);
+      setNodes((prev) =>
+        prev.map((n) =>
+          n.id === "gap-node"
+            ? {
+                ...n,
+                data: {
+                  ...n.data,
+                  gapTitle: newGap.title,
+                  opportunity: newGap.opportunity,
+                  refreshing: false,
+                  onRefresh: () => gapRefreshRef.current(),
+                },
+              }
+            : n,
+        ),
+      );
+      setGapRefreshing(false);
+    }
+
+    // Fire-and-forget — don't rely on the SSE stream staying open for the result
+    fetch(`/api/workspaces/${workspaceId}/findings/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ force: true }),
+    }).catch(() => {});
+
+    // Poll /status every 4 s until a synthesis newer than startedAt appears
+    let applied = false;
+    for (let i = 0; i < 25; i++) {
+      await new Promise<void>((r) => setTimeout(r, 4000));
+      try {
+        const res = await fetch(`/api/workspaces/${workspaceId}/status`);
+        if (!res.ok) continue;
+        const data = await res.json() as {
+          findings?: { generatedAt?: string; featureGaps?: Array<{ title: string; opportunity?: string }> } | null;
+        };
+        const f = data.findings;
+        if (f?.featureGaps?.[0] && f.generatedAt && f.generatedAt > startedAt) {
+          applyNewGap({ title: f.featureGaps[0].title, opportunity: f.featureGaps[0].opportunity ?? "" });
+          applied = true;
+          break;
         }
-      }
-    } catch {
-      // fail silently — gap stays as-is
-    } finally {
+      } catch { /* network hiccup — keep polling */ }
+    }
+
+    if (!applied) {
+      // Timed out — clear the spinner at least
       setGapRefreshing(false);
       setNodes((prev) =>
         prev.map((n) =>
@@ -1294,6 +1296,7 @@ function CanvasContent({
           open={addModalOpen}
           onClose={() => setAddModalOpen(false)}
           onNodeAdded={() => { setAddModalOpen(false); router.refresh(); }}
+          existingCategories={[...new Set(appNodes.map((n) => n.category).filter((c): c is string => !!c))]}
         />
 
         <PaywallModal

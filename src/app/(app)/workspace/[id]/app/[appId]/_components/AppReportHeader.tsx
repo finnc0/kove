@@ -94,7 +94,7 @@ export function AppReportHeader({
               {appName}
             </h1>
             <p className="mt-1 text-sm text-zinc-400">
-              {[category, developerName, appAge ? `${appAge} old` : null]
+              {[category, developerName, appAge ?? null]
                 .filter(Boolean)
                 .join(" · ")}
             </p>

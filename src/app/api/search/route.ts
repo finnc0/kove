@@ -9,6 +9,7 @@ export interface AppSearchResult {
   reviews: number;
   developer: string;
   platform: "ios";
+  genre: string;
 }
 
 export async function GET(req: Request) {
@@ -29,6 +30,7 @@ export async function GET(req: Request) {
         reviews: Number(r.reviews ?? r.ratings ?? 0),
         developer: String(r.developer ?? ""),
         platform: "ios",
+        genre: String(r.primaryGenre ?? ""),
       }));
 
     // Apple's search API is unreliable with short brand-name queries —

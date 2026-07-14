@@ -19,9 +19,10 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onNodeAdded: (node: WorkspaceNode) => void;
+  existingCategories?: string[];
 }
 
-export function AddNodeModal({ workspaceId, open, onClose, onNodeAdded }: Props) {
+export function AddNodeModal({ workspaceId, open, onClose, onNodeAdded, existingCategories = [] }: Props) {
   const [step, setStep] = useState<Step>("search");
   const [visible, setVisible] = useState(true);
   const [url, setUrl] = useState("");
@@ -119,6 +120,7 @@ export function AddNodeModal({ workspaceId, open, onClose, onNodeAdded }: Props)
               url={url}
               type={type}
               meta={meta}
+              existingCategories={existingCategories}
               onConfirm={handleConfirm}
               onBack={() => transition(() => setStep("search"))}
             />
