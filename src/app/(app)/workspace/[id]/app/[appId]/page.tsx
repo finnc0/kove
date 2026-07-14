@@ -191,25 +191,25 @@ export default async function AppReportPage({ params }: { params: Params }) {
         {/* Full report */}
         {nodeStatus === "complete" && report && (
           <>
-            {/* Key metrics row */}
+            {/* Market data + Rating row */}
             <FadeIn delay={0.04}>
-              <KeyMetrics
-                estimate={estimate}
-                rating={report.rating}
-                reviewCount={report.reviewCount}
-              />
+              <div className="mb-8 grid grid-cols-1 gap-3 lg:grid-cols-3">
+                <div className="lg:col-span-2">
+                  <EstimateBreakdown estimate={estimate ?? { downloads: null, revenue: null, scrapedAt: null }} />
+                </div>
+                <div>
+                  <KeyMetrics
+                    rating={report.rating}
+                    reviewCount={report.reviewCount}
+                  />
+                </div>
+              </div>
             </FadeIn>
 
             {/* Two-column body */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
               {/* LEFT — primary 60% */}
               <div className="lg:col-span-3">
-                {estimate && (
-                  <FadeIn delay={0.08}>
-                    <EstimateBreakdown estimate={estimate} />
-                  </FadeIn>
-                )}
-
                 {report.painPoints?.length > 0 && (
                   <FadeIn delay={0.12}>
                     <PainPoints items={report.painPoints} />

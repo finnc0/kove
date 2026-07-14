@@ -154,11 +154,42 @@ export function WorkspaceCard({ workspace }: { workspace: Workspace }) {
         onClick={handleCardClick}
         className="group relative flex cursor-pointer flex-col rounded-2xl border border-white/[0.06] bg-zinc-900 p-6 transition-colors duration-150 hover:border-white/[0.14]"
       >
-        {/* Top row: niche name + status */}
+        {/* Top row: niche name + status + menu */}
         <div className="mb-5 flex items-start justify-between gap-3">
           <p className="text-lg font-medium leading-snug text-white">{name}</p>
-          <div className="shrink-0 pt-0.5">
+          <div className="flex shrink-0 items-center gap-1.5 pt-0.5">
             <StatusDot status={workspace.status} />
+            <div
+              className="opacity-0 transition-opacity group-hover:opacity-100"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex h-6 w-6 items-center justify-center rounded-md text-zinc-600 outline-none transition-colors hover:bg-white/[0.06] hover:text-white">
+                  <MoreHorizontal className="h-4 w-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    className="flex cursor-pointer items-center gap-2"
+                    onClick={() => {
+                      setDraft(name);
+                      setRenameOpen(true);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Rename
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="destructive"
+                    className="flex cursor-pointer items-center gap-2"
+                    onClick={() => setDeleteOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete market
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
 
@@ -181,39 +212,6 @@ export function WorkspaceCard({ workspace }: { workspace: Workspace }) {
               </span>
             )}
           </div>
-        </div>
-
-        {/* Hover ⋯ menu */}
-        <div
-          className="absolute right-4 top-4 opacity-0 transition-opacity group-hover:opacity-100"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-600 outline-none transition-colors hover:bg-white/[0.06] hover:text-white">
-              <MoreHorizontal className="h-4 w-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                className="flex cursor-pointer items-center gap-2"
-                onClick={() => {
-                  setDraft(name);
-                  setRenameOpen(true);
-                }}
-              >
-                <Pencil className="h-4 w-4" />
-                Rename
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                className="flex cursor-pointer items-center gap-2"
-                onClick={() => setDeleteOpen(true)}
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete market
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </motion.div>
 

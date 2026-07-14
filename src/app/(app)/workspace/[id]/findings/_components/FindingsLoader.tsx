@@ -1,24 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { flushSync } from "react-dom";
 import { FindingsScroll, type FindingsPricingRow } from "./FindingsScroll";
 import type { WorkspaceSynthesis } from "@/lib/analysis/workspaceSynthesis";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 const REQUIRED = 3;
-
-// Must match the step indices emitted by the generate route
-const STEPS = [
-  { label: "Loading workspace",     donePct: 10  },
-  { label: "Loading app data",      donePct: 13  },
-  { label: "Parsing reports",       donePct: 15  },
-  { label: "Synthesizing with AI",  donePct: 92  },
-  { label: "Saving findings",       donePct: 100 },
-];
-
 const TOP_NAV_PX = 56;
+const POLL_MS = 4000;
 
 interface Props {
   workspaceName: string;
@@ -32,7 +22,7 @@ interface Props {
   totals: { downloads: number; revenue: number };
 }
 
-// ─── Gate screen shown when < 3 apps are complete ───────────────────────────
+// ─── Gate screen shown when < 3 apps are complete ────────────────────────────
 function FindingsGate({
   workspaceId,
   workspaceName,
@@ -54,7 +44,6 @@ function FindingsGate({
       className="fixed bg-zinc-950 flex flex-col"
       style={{ top: TOP_NAV_PX, left: 0, right: 0, bottom: 0 }}
     >
-      {/* Back link */}
       <Link
         href={`/workspace/${workspaceId}`}
         className="absolute z-10 flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-300 transition-colors"
@@ -64,15 +53,12 @@ function FindingsGate({
         {workspaceName}
       </Link>
 
-      {/* Centered content */}
       <div className="flex flex-1 flex-col items-center justify-center px-8">
         <div className="w-full max-w-sm">
-          {/* Section label */}
           <p className="mb-10 text-[10px] font-semibold tracking-[0.22em] text-zinc-600 uppercase">
             Findings
           </p>
 
-          {/* Progress dots — 3 slots */}
           <div className="mb-8 flex items-center gap-3">
             {Array.from({ length: REQUIRED }).map((_, i) => (
               <div key={i} className="flex items-center gap-3">
@@ -93,7 +79,6 @@ function FindingsGate({
             ))}
           </div>
 
-          {/* Headline */}
           <h1 className="mb-3 text-2xl font-semibold text-white leading-snug">
             {analyzedCount === 0
               ? "Add 3 competitors to unlock findings"
@@ -102,7 +87,6 @@ function FindingsGate({
                 : `${analyzedCount} of ${REQUIRED} apps analyzed`}
           </h1>
 
-          {/* Sub-text */}
           <p className="mb-8 text-sm leading-relaxed text-zinc-500">
             {stillProcessing && analyzedCount < REQUIRED ? (
               <>
@@ -120,18 +104,13 @@ function FindingsGate({
             )}
           </p>
 
-          {/* Completed apps so far */}
           {completedApps.length > 0 && (
             <div className="mb-8 space-y-2">
               {completedApps.map((app, i) => (
                 <div key={i} className="flex items-center gap-2.5">
                   {app.iconUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={app.iconUrl}
-                      alt=""
-                      className="h-5 w-5 rounded-md object-cover"
-                    />
+                    <img src={app.iconUrl} alt="" className="h-5 w-5 rounded-md object-cover" />
                   ) : (
                     <span className="flex h-5 w-5 items-center justify-center rounded-md bg-zinc-800 text-[9px] font-bold text-zinc-500">
                       {app.name[0]?.toUpperCase()}
@@ -146,15 +125,12 @@ function FindingsGate({
                   <span className="flex h-5 w-5 items-center justify-center rounded-md bg-zinc-800/60">
                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#2dd4bf]" />
                   </span>
-                  <span className="text-sm text-zinc-600">
-                    {analyzingCount} analyzing…
-                  </span>
+                  <span className="text-sm text-zinc-600">{analyzingCount} analyzing…</span>
                 </div>
               )}
             </div>
           )}
 
-          {/* CTAs */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href={`/workspace/${workspaceId}`}
@@ -176,74 +152,51 @@ function FindingsGate({
   );
 }
 
-// ─── Main loader ─────────────────────────────────────────────────────────────
+// ─── Main loader ──────────────────────────────────────────────────────────────
 export function FindingsLoader(props: Props) {
   const [synthesis, setSynthesis] = useState(props.synthesis);
-  const [pct, setPct] = useState(0);
-  const [activeStep, setActiveStep] = useState(-1);
   const [failed, setFailed] = useState(false);
-  const cancelRef = useRef<(() => void) | null>(null);
+  const started = useRef(false);
 
   const belowThreshold = props.analyzedCount < REQUIRED;
   const needsGeneration = !belowThreshold && !synthesis;
 
   useEffect(() => {
-    if (!needsGeneration) return;
-    if (cancelRef.current) { cancelRef.current(); cancelRef.current = null; }
+    if (!needsGeneration || started.current) return;
+    started.current = true;
 
     let cancelled = false;
-    cancelRef.current = () => { cancelled = true; };
+    let timer: ReturnType<typeof setTimeout>;
 
-    (async () => {
+    // Kick off generation (fire-and-forget; we poll for the result)
+    fetch(`/api/workspaces/${props.workspaceId}/findings/generate`, { method: "POST" }).catch(() => {});
+
+    async function poll() {
+      if (cancelled) return;
       try {
-        const res = await fetch(
-          `/api/workspaces/${props.workspaceId}/findings/generate`,
-          { method: "POST" },
-        );
-        if (cancelled) return;
-
-        const reader = res.body?.getReader();
-        if (!reader) { if (!cancelled) setFailed(true); return; }
-
-        const decoder = new TextDecoder();
-        let buffer = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          if (cancelled) { reader.cancel(); return; }
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            try {
-              const event = JSON.parse(line.slice(6));
-              if (event.type === "step") {
-                flushSync(() => { setActiveStep(event.step); setPct(event.pct); });
-              } else if (event.type === "progress") {
-                setPct(event.pct);
-              } else if (event.type === "complete") {
-                flushSync(() => { setPct(100); setActiveStep(STEPS.length); });
-                setTimeout(() => { if (!cancelled) setSynthesis(event.synthesis); }, 400);
-              } else if (event.type === "error") {
-                setFailed(true);
-              }
-            } catch { /* malformed line */ }
+        const res = await fetch(`/api/workspaces/${props.workspaceId}/status`);
+        if (res.ok) {
+          const data = await res.json() as { findings?: WorkspaceSynthesis | null };
+          const f = data.findings;
+          if (f && f.nicheOverview && f.appCount === props.analyzedCount) {
+            if (!cancelled) setSynthesis(f);
+            return;
           }
         }
-      } catch {
-        if (!cancelled) setFailed(true);
-      }
-    })();
+      } catch { /* network hiccup — keep polling */ }
+      if (!cancelled) timer = setTimeout(poll, POLL_MS);
+    }
 
-    return () => { cancelled = true; cancelRef.current = null; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsGeneration, props.workspaceId]);
+    // First poll after 5 s to give generation time to start
+    timer = setTimeout(poll, 5000);
 
-  // Not enough apps — show gate
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsGeneration, props.workspaceId, props.analyzedCount]);
+
   if (belowThreshold) {
     return (
       <FindingsGate
@@ -256,12 +209,11 @@ export function FindingsLoader(props: Props) {
     );
   }
 
-  // Synthesis ready — show scroll
   if (synthesis) {
     return <FindingsScroll {...props} synthesis={synthesis} />;
   }
 
-  // Generating
+  // ── Analyzing state ──────────────────────────────────────────────────────
   return (
     <>
       <Link
@@ -277,71 +229,23 @@ export function FindingsLoader(props: Props) {
         className="fixed bg-zinc-950 flex items-center justify-center"
         style={{ top: TOP_NAV_PX, left: 0, right: 0, bottom: 0 }}
       >
-        <div className="max-w-sm w-full px-8">
-          {failed ? (
-            <div className="text-center">
-              <p className="text-white text-lg font-medium mb-2">Synthesis failed</p>
-              <p className="text-zinc-500 text-sm mb-6">
-                Go back and try adding more apps, or refresh.
-              </p>
-              <Link
-                href={`/workspace/${props.workspaceId}`}
-                className="inline-flex items-center gap-1.5 text-sm text-zinc-300 border border-white/[0.1] rounded-lg px-5 py-2.5 hover:bg-white/[0.04] transition-colors"
-              >
-                Back to workspace
-              </Link>
-            </div>
-          ) : (
-            <>
-              <p className="text-white text-base font-medium mb-1">Generating findings</p>
-              <p className="text-zinc-500 text-xs mb-6">
-                Synthesizing {props.analyzedCount} apps into a market brief
-              </p>
-
-              <div className="w-full h-px bg-white/[0.06] rounded-full overflow-hidden mb-1.5">
-                <div
-                  className="h-full bg-white/70 rounded-full"
-                  style={{
-                    width: `${pct}%`,
-                    transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
-                  }}
-                />
-              </div>
-              <p className="text-[11px] text-zinc-700 text-right mb-7 tabular-nums">{pct}%</p>
-
-              <div className="space-y-3">
-                {STEPS.map((step, i) => {
-                  const isDone = i < activeStep || pct >= step.donePct;
-                  const isActive = i === activeStep && !isDone;
-                  return (
-                    <div key={step.label} className="flex items-center gap-3">
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors duration-200 ${
-                          isDone
-                            ? "bg-white"
-                            : isActive
-                              ? "bg-white/50 animate-pulse"
-                              : "bg-white/[0.10]"
-                        }`}
-                      />
-                      <span
-                        className={`text-sm transition-colors duration-200 ${
-                          isDone
-                            ? "text-zinc-300"
-                            : isActive
-                              ? "text-zinc-400"
-                              : "text-zinc-700"
-                        }`}
-                      >
-                        {step.label}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </div>
+        {failed ? (
+          <div className="text-center px-8">
+            <p className="text-white text-lg font-medium mb-2">Synthesis failed</p>
+            <p className="text-zinc-500 text-sm mb-6">Go back and try again.</p>
+            <Link
+              href={`/workspace/${props.workspaceId}`}
+              className="inline-flex items-center gap-1.5 text-sm text-zinc-300 border border-white/[0.1] rounded-lg px-5 py-2.5 hover:bg-white/[0.04] transition-colors"
+            >
+              Back to workspace
+            </Link>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-4">
+            <span className="h-2 w-2 rounded-full bg-[#2dd4bf] animate-pulse" />
+            <p className="text-sm font-medium text-zinc-400">Analyzing</p>
+          </div>
+        )}
       </div>
     </>
   );

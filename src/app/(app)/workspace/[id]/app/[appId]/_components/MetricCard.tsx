@@ -40,6 +40,7 @@ interface Props {
   range?: string;
   secondary?: string;
   highlight?: boolean;
+  ratingMode?: boolean;
 }
 
 export function MetricCard({
@@ -50,9 +51,14 @@ export function MetricCard({
   range,
   secondary,
   highlight = false,
+  ratingMode = false,
 }: Props) {
   const animated = useCountUp(value);
   const hasValue = value > 0;
+
+  const displayValue = ratingMode
+    ? `${(animated / 10).toFixed(1)}`
+    : (hasValue ? formatNum(animated, prefix) : "—");
 
   return (
     <div
@@ -73,7 +79,12 @@ export function MetricCard({
             .filter(Boolean)
             .join(" ")}
         >
-          {hasValue ? formatNum(animated, prefix) : "—"}
+          {ratingMode && hasValue ? (
+            <>
+              {displayValue}
+              <span className="ml-0.5 text-xl font-medium text-zinc-600">/5</span>
+            </>
+          ) : displayValue}
         </p>
         {isEstimate && hasValue && <EstTag />}
       </div>

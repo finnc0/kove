@@ -22,7 +22,7 @@ export function EstimateBreakdown({ estimate }: Props) {
   if (!billing.loading && !billing.isPro) {
     return (
       <>
-        <div className="mb-5 rounded-xl border border-white/[0.06] bg-zinc-900 p-5">
+        <div className="rounded-xl border border-white/[0.06] bg-zinc-900 p-5">
           <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#2dd4bf]/50">
             Market data
           </p>
@@ -47,7 +47,7 @@ export function EstimateBreakdown({ estimate }: Props) {
   }
 
   return (
-    <div className="mb-5 rounded-xl border border-white/[0.06] bg-zinc-900 p-5">
+    <div className="rounded-xl border border-white/[0.06] bg-zinc-900 p-5">
       <div className="flex items-center justify-between gap-3 mb-3">
         <h3 className="text-sm font-semibold text-white">Market data</h3>
         {estimate.scrapedAt && (

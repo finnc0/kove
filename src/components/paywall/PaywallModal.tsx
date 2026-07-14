@@ -207,9 +207,7 @@ export function PaywallModal({ open, onClose, gate }: Props) {
   const resolved = prices ?? FALLBACK;
   const activePriceData = resolved[plan] ?? (plan === "annual" ? FALLBACK.annual : FALLBACK.monthly)!;
   const priceDisplay = `$${activePriceData.amount}/mo`;
-  const annualAmount = (resolved.annual ?? FALLBACK.annual)!.amount;
-  const annualTotal = `$${(parseFloat(annualAmount) * 12).toFixed(0)}/yr`;
-  const priceSub = plan === "annual" ? `billed ${annualTotal}` : "billed monthly";
+  const priceSub = plan === "annual" ? "billed annually" : "billed monthly";
 
   if (!mounted) return null;
 
