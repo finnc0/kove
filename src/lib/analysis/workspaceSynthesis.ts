@@ -70,17 +70,17 @@ const SCHEMA = `{
   "featureGaps": [
     {
       "title": "5–9 words. Name the missing capability in plain English — what users want to do but can't. No jargon.",
-      "description": "2 short sentences. (1) What users are doing instead — the workaround or repeated ask from the review data. (2) Why none of the existing apps have built it — a real reason, not 'they haven't tried'.",
-      "opportunity": "1 short sentence starting with an action verb. What a new app builds to capture this — specific enough that a developer knows what to ship. Example: 'Build offline-first note sync that survives background kills without losing data.'"
+      "description": "2 short sentences. (1) What users are doing instead — the workaround or repeated ask from the review data. (2) Why none of the existing apps have built it — a real structural reason, not 'they haven't tried'.",
+      "opportunity": "1 short sentence starting with an action verb. A specific software capability a developer could scope and ship — substantial enough to meaningfully change the user's workflow. HARD REJECTS for opportunity: transparent pricing, upfront pricing, honest refunds, better support, clearer onboarding, price disclosure, honest marketing, lower price, more content, faster support — these are business decisions, not product capabilities. If a competitor could copy it without writing code, it is not an opportunity. The opportunity must describe something that takes weeks to engineer and, once built, meaningfully changes what users can accomplish. Example: 'Build offline-first note sync that survives background kills without losing data.'"
     }
   ],
 
   "marketEntry": {
-    "wedge": "1 punchy sentence. The exact positioning angle that exploits the biggest gap. Specific enough to be a product tagline.",
-    "icp": "1 sentence. Who the highest-pain first customer is — describe their workflow, not just their demographic.",
-    "differentiator": "1–2 sentences. The core product truth that separates a new entrant — a philosophy or structural bet, not a feature list.",
-    "featureBets": ["what to build first — specific capability, under 15 words"],
-    "pitfalls": ["specific mistake to avoid from the review patterns, under 15 words"]
+    "wedge": "1 punchy sentence. The exact PRODUCT CAPABILITY that exploits the biggest structural gap — something that requires engineering to build, not a business or policy change. If the wedge could be described as 'just be more transparent / honest / upfront / cheaper / friendlier', it is not a wedge. It must name what users will be able to DO that they cannot do today.",
+    "icp": "1 sentence. Who the highest-pain first customer is — describe their workflow and the specific moment they hit the wall, not just their demographic.",
+    "differentiator": "1–2 sentences. The core product architecture or workflow that separates a new entrant — a structural bet that competitors cannot copy without rebuilding. Not a feature list, not a brand promise, not a policy.",
+    "featureBets": ["specific software capability to build first — describe the user action it unlocks, under 15 words"],
+    "pitfalls": ["specific product or strategic mistake to avoid from the review patterns, under 15 words"]
   }
 }`;
 
@@ -108,7 +108,8 @@ HARD RULES:
 - Every claim must be traceable to the provided review data. If you can't point to a specific pattern in the data, don't say it.
 - painPoints: only include patterns that appear in the review data of 2 or more apps. A pain point in only one app is that app's problem, not the niche's. Set "appsAffected" to the actual count.
 - featureGaps: each gap must be a specific software capability that a small team could actually build and ship. Derive it from: (a) a workaround users describe, (b) a feature explicitly requested across multiple reviews, or (c) a behavioral pattern showing unmet need.
-  REJECT these — they are not gaps: "better performance", "simpler onboarding", "dark mode", "more integrations", "faster sync", "better customer support", "lower prices", "more content", "better design". If the gap is solvable by hiring more people or spending more money rather than building a different product, reject it.
+  REJECT these — they are not gaps: "better performance", "simpler onboarding", "dark mode", "more integrations", "faster sync", "better customer support", "lower prices", "more content", "better design", "transparent pricing", "upfront pricing", "honest refunds", "price before paywall", "better communication", "faster responses", "clearer UI", "honest marketing". The bar: if a competitor could close this gap by updating a policy document, hiring a support rep, or changing a price — it is NOT a gap. A gap must require writing significant new code that changes what users can DO.
+  A gap is substantial when: it removes a repeated behavioral friction (users describe workarounds), it unlocks a workflow users currently cannot complete in any existing app, or it addresses a structural design flaw that all current apps share for architectural reasons.
   ACCEPT only gaps where you can point to a specific thing users try to do and cannot.
 - Titles must be plain English. Write like you're explaining to a non-technical friend what users can't do.
   ✓ "can't keep notes in sync across two phones" — clear, specific
@@ -122,7 +123,7 @@ HARD RULES:
   const userContent = `Here are ${apps.length} iOS apps from the same niche. Your job: identify the patterns that appear across multiple apps' review data and give a founder a precise market entry angle.
 
 For painPoints: scan each app's pain points and find the ones that recur across apps. Weight by severity and frequency. Only report cross-app patterns.
-For featureGaps: look for: (1) workarounds users describe in reviews, (2) requests that appear across multiple apps, (3) complaints where users switch apps and find the same problem everywhere. Each gap must be something buildable — a specific software feature, not a generic improvement. If you'd need to hire a support team or spend more money to fix it rather than write code, it's not a gap. Write the opportunity as a single action sentence telling a founder exactly what to build.
+For featureGaps: look for: (1) workarounds users describe in reviews, (2) requests that appear across multiple apps, (3) complaints where users switch apps and find the same problem everywhere. Each gap must be something that requires engineering to fix — a specific software capability that changes what users can DO. Hard filter: if a competitor could close the gap by changing a pricing page, updating their support SLA, or writing a blog post about transparency, it is NOT a gap — discard it entirely. Write the opportunity as a single action sentence telling a founder exactly what to build, specific enough that an engineer could scope it. The opportunity must be substantial: it either removes a repeated friction that all current apps share for structural reasons, or it unlocks a workflow users currently cannot complete in any existing app.
 
 ${appBlock}
 

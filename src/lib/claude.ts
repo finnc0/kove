@@ -332,7 +332,7 @@ Return ONLY valid JSON (no markdown, no preamble) matching this schema:
   "aiSynthesis": {
     "doesWell": "1 short sentence. The single thing users keep coming back for — the retention hook. Must be specific to this app's reviews, not a generic compliment. Plain English, no buzzwords.",
     "fails": "1 short sentence. The core reason users leave or rate it 1–2 stars. State the problem directly from review patterns — not a diagnosis, not a feature request. Plain English.",
-    "implication": "1–2 short sentences. What a new app should do differently — written as a product decision, not a market observation. 'Build X for Y' or 'Win by doing Z' — concrete and actionable."
+    "implication": "1–2 short sentences. The core PRODUCT bet a new entrant must make — a structural capability difference that requires meaningful engineering to build (weeks to months, not hours). Must describe something that fundamentally changes the user's workflow or removes a repeated behavioral friction from the reviews. HARD REJECTS — never suggest these, they are business or policy changes that require no engineering: transparent pricing, upfront pricing, price before questionnaire, honest refunds, better support, faster support, responsive team, clearer onboarding, honest marketing, lower prices, more content, or any change solvable by a spreadsheet or hiring decision. If a competitor could copy your suggestion in a week without writing code, it is not an implication — throw it out and find a real product bet. 'Build X' must name a specific software capability. 'Win by' must describe a workflow or product architecture that competitors cannot replicate without rebuilding their core."
   }
 }`;
 }
