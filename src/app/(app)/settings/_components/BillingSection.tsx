@@ -58,7 +58,7 @@ export function BillingSection() {
           <div>
             <div className="flex items-center gap-2">
               <p className="text-sm font-medium text-white">
-                {billing.isPro ? "Kove Pro" : "Explorer (Free)"}
+                {billing.isPro ? "Kove Pro" : "Free plan"}
               </p>
               {billing.isPro && (
                 <span className="flex items-center gap-1 rounded-full bg-[#2dd4bf]/15 px-2 py-0.5 text-[10px] font-semibold text-[#2dd4bf]">

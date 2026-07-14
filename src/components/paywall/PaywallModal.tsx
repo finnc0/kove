@@ -145,13 +145,25 @@ interface Props {
   hasUsedTrial?: boolean;
 }
 
+interface PriceData { amount: string; currency: string }
+interface Prices { monthly: PriceData; annual: PriceData }
+
 export function PaywallModal({ open, onClose, gate }: Props) {
   const [plan, setPlan] = useState<"monthly" | "annual">("annual");
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [prices, setPrices] = useState<Prices | null>(null);
   const reduced = useReducedMotion();
 
   useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => {
+    if (!open || prices) return;
+    fetch("/api/billing/prices")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d && setPrices(d))
+      .catch(() => {});
+  }, [open, prices]);
 
   const meta = GATE_META[gate];
 
@@ -175,8 +187,12 @@ export function PaywallModal({ open, onClose, gate }: Props) {
     }
   }
 
-  const price = plan === "annual" ? "$19/mo" : "$29/mo";
-  const priceSub = plan === "annual" ? "billed $228/yr · save 35%" : "billed monthly";
+  const activePriceData = prices?.[plan];
+  const priceDisplay = activePriceData ? `$${activePriceData.amount}/mo` : "—";
+  const annualTotal = prices?.annual ? `$${(parseFloat(prices.annual.amount) * 12).toFixed(0)}/yr` : null;
+  const priceSub = plan === "annual"
+    ? (annualTotal ? `billed ${annualTotal}` : "billed annually")
+    : "billed monthly";
 
   if (!mounted) return null;
 
@@ -232,7 +248,7 @@ export function PaywallModal({ open, onClose, gate }: Props) {
                 <div className="mb-5 flex items-center justify-between gap-4">
                   <PlanToggle value={plan} onChange={setPlan} />
                   <div className="text-right">
-                    <p className="text-lg font-semibold tabular-nums text-white">{price}</p>
+                    <p className="text-lg font-semibold tabular-nums text-white">{priceDisplay}</p>
                     <p className="text-[11px] text-zinc-600">{priceSub}</p>
                   </div>
                 </div>
