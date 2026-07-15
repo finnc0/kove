@@ -8,7 +8,8 @@
     "migrate": "prisma migrate deploy",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "admin": "tsx admin/server.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
