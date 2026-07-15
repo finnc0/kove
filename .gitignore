@@ -46,6 +46,9 @@ Thumbs.db
 .vscode/*
 .idea/
 
+# admin dashboard (local-only)
+/admin/
+
 # claude
 .claude/
 .claude_test
