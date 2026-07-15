@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { cn } from "@/lib/utils";
 import { Layers, Loader2, MessageSquare } from "lucide-react";
 import { FindingsView } from "./FindingsView/FindingsView";
@@ -61,7 +62,7 @@ export function MainPanel({ workspaceId, nodes, activeNodeId, view, onViewChange
           setNodeReport(r && typeof r.appName === "string" ? r : null);
           setNodeIconUrl(data?.iconUrl ?? null);
         })
-        .catch(() => { setNodeReport(null); setNodeIconUrl(null); })
+        .catch((err) => { Sentry.captureException(err); setNodeReport(null); setNodeIconUrl(null); })
         .finally(() => setLoadingReport(false));
     }
   }, [activeNode?.status, activeNodeId, workspaceId]);

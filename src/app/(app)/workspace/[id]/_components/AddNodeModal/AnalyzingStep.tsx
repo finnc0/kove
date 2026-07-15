@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check, Loader, AlertCircle } from "lucide-react";
+import * as Sentry from "@sentry/nextjs";
 
 const SOURCES = [
   { id: "appstore", label: "App Store" },
@@ -75,13 +76,17 @@ export function AnalyzingStep({ workspaceId, nodeId, appName, onComplete }: Prop
               if (event.type === "error") {
                 const msg: string = event.message ?? "Analysis failed. The app was saved but could not be fully analyzed.";
                 console.error("[analyze]", msg);
+                Sentry.captureMessage(msg, "error");
                 setErrorMessage(msg);
               }
-            } catch {}
+            } catch (innerErr) {
+              Sentry.captureException(innerErr);
+            }
           }
         }
       } catch (err) {
         console.error("[AnalyzingStep]", err);
+        Sentry.captureException(err);
         setErrorMessage("Connection error. The app was saved but analysis may be incomplete.");
       }
     })();

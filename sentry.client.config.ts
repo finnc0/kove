@@ -15,10 +15,5 @@ Sentry.init({
   ignoreErrors: [
     "ResizeObserver loop limit exceeded",
     "ResizeObserver loop completed with undelivered notifications",
-    "Non-Error exception captured",
-    "Network request failed",
-    "Failed to fetch",
-    "Load failed",
-    "AbortError",
   ],
 });
