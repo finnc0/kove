@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+import { captureError } from "@/lib/sentry";
 
 // Raw body required for Stripe signature verification
 export const dynamic = "force-dynamic";
@@ -113,6 +114,7 @@ export async function POST(req: Request) {
       data: { id: event.id, type: event.type },
     });
   } catch (err) {
+    captureError(err, "billing.webhook", { eventType: event.type, eventId: event.id });
     console.error("Webhook handler error:", err);
     return NextResponse.json({ error: "Handler failed" }, { status: 500 });
   }

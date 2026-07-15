@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { stripe } from "@/lib/stripe";
 import { getOrCreateCustomer } from "@/lib/billing/getOrCreateCustomer";
+import { captureError } from "@/lib/sentry";
 
 export async function POST() {
   const session = await auth();
@@ -20,6 +21,7 @@ export async function POST() {
 
     return NextResponse.json({ url: portalSession.url });
   } catch (err) {
+    captureError(err, "billing.portal", { userId: session.user.id });
     const message = err instanceof Error ? err.message : "Failed to open billing portal";
     return NextResponse.json({ error: message }, { status: 500 });
   }

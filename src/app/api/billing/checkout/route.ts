@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { stripe } from "@/lib/stripe";
 import { getOrCreateCustomer } from "@/lib/billing/getOrCreateCustomer";
+import { captureError } from "@/lib/sentry";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -38,6 +39,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ url: checkoutSession.url });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to create checkout session";
+    captureError(err, "billing.checkout", { plan, userId: session.user.id });
     console.error("[checkout]", message);
     return NextResponse.json({ error: message }, { status: 500 });
   }

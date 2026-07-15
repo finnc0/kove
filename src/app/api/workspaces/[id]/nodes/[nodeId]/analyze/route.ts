@@ -8,6 +8,7 @@ import { getAppEstimate } from "@/lib/estimation";
 import { synthesizeWorkspace, buildAppSummaries } from "@/lib/analysis/workspaceSynthesis";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { captureError } from "@/lib/sentry";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -122,7 +123,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
               workspaceFindings = JSON.stringify(synthesis);
             }
           } catch (e) {
-            console.error("[workspace-synthesis]", e);
+            captureError(e, "ai.workspace_synthesis", { workspaceId });
+          console.error("[workspace-synthesis]", e);
           }
 
           await prisma.workspace.update({
@@ -138,6 +140,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           sse(ctrl, { type: "complete", nodeId });
         } catch (err) {
           const message = err instanceof Error ? err.message : "Analysis failed";
+          captureError(err, "node.analyze.ios", { nodeId, workspaceId });
           console.error("[ios-analyze]", err);
           await prisma.node.update({ where: { id: nodeId }, data: { status: "failed", errorMessage: message } }).catch(() => {});
           sse(ctrl, { type: "error", message });
@@ -287,6 +290,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         sse(ctrl, {type:"complete",nodeId,reportId:nodeId});
       } catch(err){
         const message=err instanceof Error?err.message:"Analysis failed";
+        captureError(err, "node.analyze.web", { nodeId, workspaceId });
         console.error("[node-analyze]",err);
         await prisma.node.update({where:{id:nodeId},data:{status:"failed",errorMessage:message}}).catch(()=>{});
         sse(ctrl,{type:"error",message});

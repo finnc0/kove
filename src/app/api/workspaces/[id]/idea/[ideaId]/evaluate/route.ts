@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import Anthropic from "@anthropic-ai/sdk";
 import { isPro } from "@/lib/entitlements";
+import { captureError } from "@/lib/sentry";
 
 const client = new Anthropic();
 
@@ -155,6 +156,7 @@ Verdict guide:
 
     return NextResponse.json(evaluation);
   } catch (err) {
+    captureError(err, "ai.idea_evaluate", { ideaId, workspaceId: id });
     console.error("[idea/evaluate]", err);
     return NextResponse.json({ error: "Evaluation failed" }, { status: 500 });
   }

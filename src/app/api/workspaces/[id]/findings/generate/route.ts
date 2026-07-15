@@ -5,6 +5,7 @@ import {
   synthesizeWorkspaceStreaming,
   type WorkspaceSynthesis,
 } from "@/lib/analysis/workspaceSynthesis";
+import { captureError } from "@/lib/sentry";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -87,6 +88,7 @@ export async function POST(
         sse(ctrl, { type: "complete", synthesis });
       } catch (e) {
         const message = e instanceof Error ? e.message : "Synthesis failed";
+        captureError(e, "findings.generate", { workspaceId: id });
         console.error("[findings-generate]", e);
         sse(ctrl, { type: "error", message });
       } finally {

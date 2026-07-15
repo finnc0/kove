@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { captureError } from "@/lib/sentry";
 
 export async function POST(req: Request) {
   try {
@@ -23,6 +24,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(user, { status: 201 });
   } catch (err) {
+    captureError(err, "auth.sign_up");
     console.error("[register]", err);
     return NextResponse.json({ error: "Registration failed" }, { status: 500 });
   }
