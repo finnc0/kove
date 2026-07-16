@@ -43,6 +43,15 @@ function PasswordInput({
 }
 
 export function PasswordSection() {
+  return (
+    <SettingsCard title="Password" description="Change your account password">
+      <p className="text-sm text-zinc-500">Password management is coming soon.</p>
+    </SettingsCard>
+  );
+}
+
+/* PASSWORD CHANGE FORM — temporarily disabled, re-enable when ready
+function PasswordSectionFull() {
   const [saveState, setSaveState] = useState<"idle" | "loading" | "success">("idle");
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -113,3 +122,4 @@ export function PasswordSection() {
     </SettingsCard>
   );
 }
+*/

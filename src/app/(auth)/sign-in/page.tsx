@@ -56,6 +56,7 @@ export default function SignInPage() {
           <GoogleIcon />Continue with Google
         </button>
 
+        {/* EMAIL SIGN-IN — temporarily disabled, re-enable when ready
         <div className="my-5 flex items-center gap-3">
           <div className="flex-1"><Separator /></div>
           <span className="shrink-0 text-xs text-zinc-600">or continue with email</span>
@@ -88,12 +89,15 @@ export default function SignInPage() {
             {loading?"Signing in…":"Sign in"}
           </button>
         </form>
+        */}
       </div>
 
+      {/* SIGN-UP LINK — temporarily disabled alongside email sign-up
       <p className="mt-5 text-center text-sm text-zinc-600">
         Don&apos;t have an account?{" "}
         <Link href="/sign-up" className="font-medium text-zinc-300 hover:text-white transition-colors">Sign up free</Link>
       </p>
+      */}
     </div>
   );
 }

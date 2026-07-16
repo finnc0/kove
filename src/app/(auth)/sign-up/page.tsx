@@ -72,6 +72,7 @@ export default function SignUpPage() {
           <GoogleIcon />Continue with Google
         </button>
 
+        {/* EMAIL SIGN-UP — temporarily disabled, re-enable when ready
         <div className="my-5 flex items-center gap-3">
           <div className="flex-1"><Separator /></div>
           <span className="shrink-0 text-xs text-zinc-600">or continue with email</span>
@@ -104,6 +105,7 @@ export default function SignUpPage() {
             {loading?"Creating account…":"Create account"}
           </button>
         </form>
+        */}
 
         <ul className="mt-5 flex flex-col gap-2 border-t border-white/[0.06] pt-5">
           {perks.map(p=>(

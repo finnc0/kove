@@ -11,7 +11,6 @@ import { SaveButton } from "./SaveButton";
 
 const schema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Enter a valid email address"),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -29,7 +28,7 @@ export function AccountSection({ initialName, initialEmail }: Props) {
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: initialName, email: initialEmail },
+    defaultValues: { name: initialName },
   });
 
   async function onSubmit(data: FormValues) {
@@ -46,7 +45,7 @@ export function AccountSection({ initialName, initialEmail }: Props) {
   }
 
   return (
-    <SettingsCard title="Account" description="Update your name and email address">
+    <SettingsCard title="Account" description="Update your name">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
           <label className="text-sm font-medium text-zinc-400 block mb-1.5">Full name</label>
@@ -54,14 +53,16 @@ export function AccountSection({ initialName, initialEmail }: Props) {
           {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name.message}</p>}
         </div>
 
+        {/* EMAIL CHANGE — temporarily disabled, re-enable when ready
         <div>
           <label className="text-sm font-medium text-zinc-400 block mb-1.5">Email address</label>
-          <Input {...register("email")} type="email" placeholder="you@example.com" />
-          {errors.email ? (
-            <p className="text-xs text-red-400 mt-1">{errors.email.message}</p>
-          ) : (
-            <p className="text-xs text-zinc-600 mt-1">Changing your email will require verification</p>
-          )}
+          <Input name="email" type="email" defaultValue={initialEmail} placeholder="you@example.com" />
+          <p className="text-xs text-zinc-600 mt-1">Changing your email will require verification</p>
+        </div>
+        */}
+        <div>
+          <label className="text-sm font-medium text-zinc-400 block mb-1.5">Email address</label>
+          <p className="text-sm text-zinc-300 py-2">{initialEmail}</p>
         </div>
 
         <div className="flex justify-end pt-1">
