@@ -16,6 +16,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
       allowDangerousEmailAccountLinking: true,
     }),
+    ...(process.env.NODE_ENV === "development" ? [
+      Credentials({
+        id: "dev",
+        credentials: {
+          email: { type: "email" },
+          password: { type: "password" },
+        },
+        async authorize(credentials) {
+          if (
+            credentials?.email === "dev@kove.dev" &&
+            credentials?.password === "dev"
+          ) {
+            return { id: "dev-user", email: "dev@kove.dev", name: "Dev User" };
+          }
+          return null;
+        },
+      }),
+    ] : []),
     Credentials({
       credentials: {
         email: { type: "email" },
