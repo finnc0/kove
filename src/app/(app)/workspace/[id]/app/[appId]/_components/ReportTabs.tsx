@@ -11,6 +11,7 @@ import { ReviewsTab } from "./tabs/ReviewsTab";
 import { PainPointsTab } from "./tabs/PainPointsTab";
 import { SentimentTab } from "./tabs/SentimentTab";
 import { MethodologyTab } from "./tabs/MethodologyTab";
+import { TabSkeleton } from "./tabs/TabSkeleton";
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "overview",     label: "Overview" },
@@ -111,13 +112,19 @@ export function ReportTabs({ data }: { data: ReportPageData }) {
         transition={reduced ? { duration: 0 } : { duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
         className="mt-8"
       >
-        {activeTab === "overview"    && <OverviewTab    data={data} />}
-        {activeTab === "market-data" && <MarketDataTab  data={data} />}
-        {activeTab === "pricing"     && <PricingTab     data={data} />}
-        {activeTab === "reviews"     && <ReviewsTab     data={data} />}
-        {activeTab === "pain-points" && <PainPointsTab  data={data} />}
-        {activeTab === "sentiment"   && <SentimentTab   data={data} />}
-        {activeTab === "methodology" && <MethodologyTab data={data} />}
+        {data.nodeStatus === "pending" || data.nodeStatus === "analyzing" ? (
+          <TabSkeleton />
+        ) : (
+          <>
+            {activeTab === "overview"    && <OverviewTab    data={data} />}
+            {activeTab === "market-data" && <MarketDataTab  data={data} />}
+            {activeTab === "pricing"     && <PricingTab     data={data} />}
+            {activeTab === "reviews"     && <ReviewsTab     data={data} />}
+            {activeTab === "pain-points" && <PainPointsTab  data={data} />}
+            {activeTab === "sentiment"   && <SentimentTab   data={data} />}
+            {activeTab === "methodology" && <MethodologyTab data={data} />}
+          </>
+        )}
       </motion.div>
     </div>
   );

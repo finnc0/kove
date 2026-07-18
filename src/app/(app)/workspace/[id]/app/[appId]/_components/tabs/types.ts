@@ -22,6 +22,7 @@ export interface ReportPageData {
   nodeStatus: "pending" | "analyzing" | "complete" | "failed";
   analyzedAt: Date | null;
   estimateRefined: boolean;
+  category: string | null;
   developerName: string | null;
   appAge: string | null;
 
@@ -31,7 +32,13 @@ export interface ReportPageData {
   // facts from rawData (exact, from Apple)
   facts: AppFactsData | null;
 
-  // review counts from rawData
+  // reviews from rawData (for excerpts in Reviews tab)
+  reviews: {
+    positive: { id: string; rating: number; title: string; body: string; author: string }[];
+    negative: { id: string; rating: number; title: string; body: string; author: string }[];
+  } | null;
+
+  // review counts (derived from reviews)
   positiveCount: number | undefined;
   negativeCount: number | undefined;
 

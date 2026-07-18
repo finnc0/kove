@@ -28,7 +28,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             credentials?.email === "dev@kove.dev" &&
             credentials?.password === "dev"
           ) {
-            return { id: "dev-user", email: "dev@kove.dev", name: "Dev User" };
+            const user = await prisma.user.upsert({
+              where: { email: "dev@kove.dev" },
+              update: {},
+              create: { email: "dev@kove.dev", name: "Dev User" },
+            });
+            return { id: user.id, email: user.email, name: user.name };
           }
           return null;
         },
