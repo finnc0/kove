@@ -8,7 +8,7 @@ interface Props {
 export function WorkspaceNav({ workspaceId, active }: Props) {
   const tabs = [
     { label: "Home",     href: `/workspace/${workspaceId}`,           key: "home"     },
-    { label: "Canvas",   href: `/workspace/${workspaceId}/canvas`,    key: "canvas"   },
+    // { label: "Canvas", href: `/workspace/${workspaceId}/canvas`, key: "canvas" }, // temporarily hidden
     { label: "Findings", href: `/workspace/${workspaceId}/findings`,  key: "findings" },
   ] as const;
 
