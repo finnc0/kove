@@ -30,7 +30,7 @@ function Block({ label, body, accent }: { label: string; body: string; accent?: 
 export function AiSynthesis({ synthesis }: { synthesis: Synthesis }) {
   return (
     <div className="mb-5 rounded-xl border border-white/[0.06] bg-zinc-900 p-5">
-      <h3 className="mb-4 text-sm font-semibold text-white">Kove&apos;s take</h3>
+
       <div className="space-y-3">
         {synthesis.doesWell && (
           <Block label="Does well" body={synthesis.doesWell} />
