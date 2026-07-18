@@ -15,7 +15,7 @@ import { KeyMetrics } from "./_components/KeyMetrics";
 import { EstimateBreakdown } from "./_components/EstimateBreakdown";
 import { PainPoints } from "./_components/PainPoints";
 import { PositiveSignals } from "./_components/PositiveSignals";
-import { AiSynthesis } from "./_components/AiSynthesis";
+// import { AiSynthesis } from "./_components/AiSynthesis"; // temporarily hidden
 import { PricingTiers } from "./_components/PricingTiers";
 import { SentimentCard } from "./_components/SentimentCard";
 import { AppFacts } from "./_components/AppFacts";
@@ -222,11 +222,13 @@ export default async function AppReportPage({ params }: { params: Params }) {
                   </FadeIn>
                 )}
 
+                {/* AI synthesis — temporarily hidden
                 {report.aiSynthesis && (
                   <FadeIn delay={0.20}>
                     <AiSynthesis synthesis={report.aiSynthesis} />
                   </FadeIn>
                 )}
+                */}
               </div>
 
               {/* RIGHT — sidebar 40% */}
