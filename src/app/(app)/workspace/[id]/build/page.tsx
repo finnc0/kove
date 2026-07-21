@@ -16,10 +16,13 @@ export default async function BuildZonePage({ params }: { params: Params }) {
       id: true,
       name: true,
       findings: true,
+      nodes: { select: { id: true, status: true } },
       buildPlan: {
         include: {
           features: { orderBy: { priority: "asc" } },
           paywallRules: true,
+          tiers: { orderBy: { order: "asc" } },
+          onboardingScreens: { orderBy: { order: "asc" } },
         },
       },
     },
@@ -45,10 +48,15 @@ export default async function BuildZonePage({ params }: { params: Params }) {
   const gaps = synthesis?.featureGaps ?? [];
   const painPoints = synthesis?.painPoints ?? [];
 
+  const completedCompetitorCount = workspace.nodes.filter(
+    (n) => n.status === "complete",
+  ).length;
+
   return (
     <BuildZoneHome
       workspaceId={workspaceId}
       workspaceName={workspace.name}
+      competitorCount={completedCompetitorCount}
       plan={{
         id: plan.id,
         name: plan.name,
@@ -61,6 +69,8 @@ export default async function BuildZonePage({ params }: { params: Params }) {
         designDirection: plan.designDirection,
         features: plan.features,
         paywallRules: plan.paywallRules,
+        tiers: plan.tiers,
+        onboardingScreens: plan.onboardingScreens,
       }}
       gaps={gaps}
       painPoints={painPoints}

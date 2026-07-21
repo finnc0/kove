@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { Layers, GitBranch, CreditCard } from "lucide-react";
 import { PlanSummaryStrip } from "./PlanSummaryStrip";
 import { ToolCard } from "./ToolCard";
 import { ResearchBridge } from "./ResearchBridge";
+import { MarketSignalsGuard } from "../shared/MarketSignalsGuard";
 import type { SynthesisGap, SynthesisPainPoint } from "@/lib/analysis/workspaceSynthesis";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -22,23 +22,26 @@ interface Plan {
   designDirection: string | null;
   features: { id: string; category: string }[];
   paywallRules: { id: string }[];
+  tiers: { id: string }[];
+  onboardingScreens: { id: string }[];
 }
 
 interface Props {
   workspaceId: string;
   workspaceName: string;
+  competitorCount: number;
   plan: Plan;
   gaps: SynthesisGap[];
   painPoints: SynthesisPainPoint[];
 }
 
-export function BuildZoneHome({ workspaceId, workspaceName, plan, gaps, painPoints }: Props) {
+export function BuildZoneHome({ workspaceId, workspaceName, competitorCount, plan, gaps, painPoints }: Props) {
   const reduced = useReducedMotion();
 
   const coreCount = plan.features.filter((f) => f.category === "core").length;
   const totalCount = plan.features.length;
-  const onboardingCount = 0; // Onboarding Flow Designer tool — placeholder
-  const tierCount = plan.paywallRules.length;
+  const screenCount = plan.onboardingScreens.length;
+  const tierCount = plan.tiers.length;
 
   const fade = (delay = 0) => ({
     initial: reduced ? {} : { opacity: 0, y: 16 },
@@ -114,18 +117,14 @@ export function BuildZoneHome({ workspaceId, workspaceName, plan, gaps, painPoin
               href={`/workspace/${workspaceId}/build/features`}
               title="Feature Organizer"
               description="Plan, categorize, and prioritize your features."
-              stat={
-                totalCount > 0
-                  ? `${totalCount} feature${totalCount !== 1 ? "s" : ""}`
-                  : null
-              }
+              stat={totalCount > 0 ? `${totalCount} feature${totalCount !== 1 ? "s" : ""}` : null}
               statLabel={coreCount > 0 ? `· ${coreCount} core` : undefined}
             />
             <ToolCard
               href={`/workspace/${workspaceId}/build/onboarding-flow`}
               title="Onboarding Flow"
               description="Map the first-time experience screen by screen."
-              stat={onboardingCount > 0 ? `${onboardingCount} screens` : null}
+              stat={screenCount > 0 ? `${screenCount} screen${screenCount !== 1 ? "s" : ""}` : null}
             />
             <ToolCard
               href={`/workspace/${workspaceId}/build/paywall`}
@@ -136,17 +135,19 @@ export function BuildZoneHome({ workspaceId, workspaceName, plan, gaps, painPoin
           </div>
         </motion.div>
 
-        {/* Research bridge */}
+        {/* Research bridge (guarded) */}
         <motion.div {...fade(0.18)}>
           <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-600">
             Market signals
           </h2>
-          <ResearchBridge
-            workspaceId={workspaceId}
-            buildPlanId={plan.id}
-            gaps={gaps}
-            painPoints={painPoints}
-          />
+          <MarketSignalsGuard workspaceId={workspaceId} competitorCount={competitorCount}>
+            <ResearchBridge
+              workspaceId={workspaceId}
+              buildPlanId={plan.id}
+              gaps={gaps}
+              painPoints={painPoints}
+            />
+          </MarketSignalsGuard>
         </motion.div>
       </div>
     </div>
