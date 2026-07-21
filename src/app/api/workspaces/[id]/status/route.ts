@@ -36,7 +36,5 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       updatedAt: n.updatedAt,
     })),
     completedCount,
-    findings: workspace.findings ? JSON.parse(workspace.findings) : null,
-    opportunitySnippet: workspace.opportunitySnippet,
   });
 }

@@ -7,15 +7,12 @@ import { prisma } from "@/lib/prisma";
 import { WorkspaceHeader } from "./_components/WorkspaceHeader";
 import { StatRow } from "./_components/StatRow";
 import { CompetitorList, type CompetitorNode } from "./_components/CompetitorList";
-import { HeadlineFindings } from "./_components/HeadlineFindings";
 import { AddCompetitorRow } from "./_components/AddCompetitorRow";
 import { AnalysisPoller } from "./_components/AnalysisPoller";
-import { WorkspaceNav } from "./_components/WorkspaceNav";
 import type { NodeReport } from "./mockData";
 import { normalizeEstimate } from "@/lib/estimation/types";
 import { getAppEstimate } from "@/lib/estimation";
-import type { WorkspaceSynthesis } from "@/lib/analysis/workspaceSynthesis";
-import { canAddCompetitor, canViewMarketOpportunity, isPro } from "@/lib/entitlements";
+import { canAddCompetitor } from "@/lib/entitlements";
 
 export const metadata: Metadata = { title: "Market — Kove" };
 
@@ -51,31 +48,6 @@ function formatRevenue(n: number): string {
   return n.toString();
 }
 
-function pricingRange(reports: NodeReport[]): string | null {
-  const prices: number[] = [];
-  for (const r of reports) {
-    if (!r.pricingTiers?.length) continue;
-    for (const tier of r.pricingTiers) {
-      const raw = (tier.price ?? "").replace(/[^0-9.]/g, "");
-      if (!raw) continue;
-      const n = parseFloat(raw);
-      if (!isNaN(n) && n > 0) {
-        // annualise yearly prices to monthly
-        const isAnnual =
-          (tier.period ?? "").toLowerCase().includes("yr") ||
-          (tier.period ?? "").toLowerCase().includes("year");
-        prices.push(isAnnual ? n / 12 : n);
-        break; // only first paid tier per app
-      }
-    }
-  }
-  if (prices.length < 2) return null;
-  const lo = Math.min(...prices);
-  const hi = Math.max(...prices);
-  if (Math.round(lo) === Math.round(hi)) return `$${Math.round(lo)}/mo`;
-  return `$${Math.round(lo)}–$${Math.round(hi)}/mo`;
-}
-
 // ─────────────────────────────────────────
 // Page
 // ─────────────────────────────────────────
@@ -104,7 +76,6 @@ export default async function WorkspaceHomePage({
   if (!workspace) notFound();
 
   const userBilling = billingUser ?? { subscriptionTier: "explorer", subscriptionStatus: "free", trialEndsAt: null };
-  const userIsPro = isPro(userBilling);
   const hasUsedTrial = billingUser?.trialEndsAt !== null;
 
   // ── Parse node reports ────────────────────────────────────────────
@@ -128,7 +99,6 @@ export default async function WorkspaceHomePage({
         try { report = JSON.parse(n.report) as NodeReport; } catch {}
       }
       let est = normalizeEstimate(report?.estimate);
-      // Lazy-fetch estimate for completed nodes analyzed before scraper was wired in
       if (!est && n.status === "complete" && report && n.rawData) {
         try {
           const rawData = JSON.parse(n.rawData) as { iTunes?: { appId?: string | number } };
@@ -162,45 +132,17 @@ export default async function WorkspaceHomePage({
   );
 
   const completedNodes = parsedNodes.filter((n) => n.nodeStatus === "complete");
-  const completedCount = completedNodes.length;
 
   // ── Aggregate stats ────────────────────────────────────────────────
-  const totalDownloads = completedNodes.reduce(
-    (sum, n) => sum + n.rawDownloads,
-    0,
-  );
+  const totalDownloads = completedNodes.reduce((sum, n) => sum + n.rawDownloads, 0);
   const totalRevenue = completedNodes.reduce((sum, n) => sum + n.rawRevenue, 0);
 
-  const completedReports = completedNodes
-    .map((n) => n.report)
-    .filter((r): r is NodeReport => r !== null);
-
-  const pricing = pricingRange(completedReports);
-
-  // ── Parse workspace findings ────────────────────────────────────────
-  let synthesis: WorkspaceSynthesis | null = null;
-  if (workspace.findings) {
-    try {
-      synthesis = JSON.parse(workspace.findings) as WorkspaceSynthesis;
-    } catch {}
-  }
-
-  const painPoints = (synthesis?.painPoints ?? []).map((pp) => ({
-    title: pp.title,
-    severity: (pp.severity === "Critical" ? "Critical" : pp.severity === "High" ? "High" : "Medium") as
-      | "Critical"
-      | "High"
-      | "Medium"
-      | "Low",
-  }));
-
-  const gap =
-    synthesis?.featureGaps?.length
-      ? {
-          title: synthesis.featureGaps[0].title,
-          opportunity: synthesis.featureGaps[0].opportunity,
-        }
-      : null;
+  // ── Avg rating ────────────────────────────────────────────────────
+  const ratedNodes = completedNodes.filter((n) => n.rating !== null);
+  const avgRating =
+    ratedNodes.length > 0
+      ? ratedNodes.reduce((sum, n) => sum + (n.rating ?? 0), 0) / ratedNodes.length
+      : 0;
 
   // ── Status ────────────────────────────────────────────────────────
   const workspaceStatus =
@@ -218,12 +160,8 @@ export default async function WorkspaceHomePage({
     name: n.name,
     iconUrl: n.iconUrl,
     nodeStatus: n.nodeStatus,
-    downloads: n.downloads
-      ? formatDownloads(n.rawDownloads)
-      : null,
-    revenue: n.revenue
-      ? formatRevenue(n.rawRevenue)
-      : null,
+    downloads: n.downloads ? formatDownloads(n.rawDownloads) : null,
+    revenue: n.revenue ? formatRevenue(n.rawRevenue) : null,
     rating: n.rating,
   }));
 
@@ -252,26 +190,22 @@ export default async function WorkspaceHomePage({
           lastUpdated={lastUpdated}
         />
 
-        {/* Tab navigation */}
-        <WorkspaceNav workspaceId={workspace.id} active="home" />
-
         {/* Stat row */}
         <StatRow
           totalDownloads={totalDownloads}
           totalRevenue={totalRevenue}
           competitorCount={parsedNodes.length}
-          painPointCount={painPoints.length}
-          hasEnoughData={completedCount >= 3}
+          avgRating={avgRating}
         />
 
-        {/* Two-column body */}
+        {/* Body */}
         {parsedNodes.length === 0 ? (
           <div className="flex flex-col items-center py-20 text-center">
             <p className="mb-2 text-base font-medium text-white">
               Add your first competitor to start.
             </p>
             <p className="mb-6 text-sm text-zinc-500">
-              Add 3+ to unlock market findings.
+              Add 3+ competitors to build a full market picture.
             </p>
             <AddCompetitorRow
               workspaceId={workspace.id}
@@ -281,27 +215,15 @@ export default async function WorkspaceHomePage({
             />
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <CompetitorList
-              workspaceId={workspace.id}
-              nodes={competitorNodes}
-              competitorCount={parsedNodes.length}
-              canAddCompetitor={canAddCompetitor(userBilling, parsedNodes.length).allowed}
-              hasUsedTrial={hasUsedTrial}
-            />
-            <HeadlineFindings
-              workspaceId={workspace.id}
-              painPoints={painPoints}
-              pricingRange={pricing}
-              workspaceStatus={workspaceStatus}
-              completedCount={completedCount}
-              isProUser={userIsPro}
-              hasUsedTrial={hasUsedTrial}
-            />
-          </div>
+          <CompetitorList
+            workspaceId={workspace.id}
+            nodes={competitorNodes}
+            competitorCount={parsedNodes.length}
+            canAddCompetitor={canAddCompetitor(userBilling, parsedNodes.length).allowed}
+            hasUsedTrial={hasUsedTrial}
+          />
         )}
       </div>
     </div>
   );
 }
-

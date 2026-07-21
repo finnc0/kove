@@ -9,6 +9,7 @@ interface Props {
   suffix?: string;
   estimate?: boolean;
   placeholder?: string;
+  decimals?: number;
 }
 
 function formatNum(n: number): string {
@@ -45,6 +46,7 @@ export function StatCard({
   suffix = "",
   estimate = false,
   placeholder,
+  decimals,
 }: Props) {
   const animated = useCountUp(value);
 
@@ -53,7 +55,7 @@ export function StatCard({
       {value > 0 ? (
         <p className="text-3xl font-bold tracking-tight text-white tabular-nums">
           {prefix}
-          {formatNum(animated)}
+          {decimals !== undefined ? animated.toFixed(decimals) : formatNum(animated)}
           {suffix}
         </p>
       ) : (

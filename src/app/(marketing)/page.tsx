@@ -7,7 +7,6 @@ import { Hero } from "./_components/Hero";
 import { HowItWorksScreens } from "./_components/HowItWorksScreens";
 import { CompetitorReportDemo } from "./_components/CompetitorReportDemo";
 import { SignalStrengthDemo } from "./_components/SignalStrengthDemo";
-import { FindingsReportDemo } from "./_components/FindingsReportDemo";
 import { IdeaNodeDemo } from "./_components/IdeaNodeDemo";
 import { WhyFounders } from "./_components/WhyFounders";
 import { ClosingCTA } from "./_components/ClosingCTA";
@@ -30,8 +29,7 @@ export default async function LandingPage() {
         <HowItWorksScreens />
         <CompetitorReportDemo />
         <SignalStrengthDemo />
-        <FindingsReportDemo />
-        <IdeaNodeDemo />
+<IdeaNodeDemo />
         <WhyFounders />
         <DataPrivacy />
         <ClosingCTA />

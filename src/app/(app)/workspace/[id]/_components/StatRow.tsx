@@ -4,17 +4,10 @@ interface Props {
   totalDownloads: number;
   totalRevenue: number;
   competitorCount: number;
-  painPointCount: number;
-  hasEnoughData: boolean;
+  avgRating: number;
 }
 
-export function StatRow({
-  totalDownloads,
-  totalRevenue,
-  competitorCount,
-  painPointCount,
-  hasEnoughData,
-}: Props) {
+export function StatRow({ totalDownloads, totalRevenue, competitorCount, avgRating }: Props) {
   return (
     <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
       <StatCard
@@ -37,13 +30,11 @@ export function StatRow({
         placeholder="None yet"
       />
       <StatCard
-        value={hasEnoughData ? painPointCount : 0}
-        label="Shared pain points"
-        placeholder={
-          competitorCount === 0
-            ? "Add apps"
-            : `Add ${Math.max(0, 3 - competitorCount)} more`
-        }
+        value={avgRating ? Math.round(avgRating * 10) / 10 : 0}
+        label="Avg rating"
+        placeholder="Add apps"
+        decimals={1}
+        suffix=" ★"
       />
     </div>
   );
