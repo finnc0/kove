@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { ScreenShell } from "./ScreenShell";
+import { IdeaSuggestions } from "./IdeaSuggestions";
 
 interface Props {
   workspaceId: string;
@@ -13,6 +14,18 @@ interface Props {
 
 export function ScreenIdea({ workspaceId, workspaceName, initialValue, onAdvance }: Props) {
   const [value, setValue] = useState(initialValue);
+  const [showBranch, setShowBranch] = useState(false);
+
+  if (showBranch) {
+    return (
+      <IdeaSuggestions
+        workspaceId={workspaceId}
+        workspaceName={workspaceName}
+        onPick={(idea, sourceGap) => onAdvance(idea, sourceGap)}
+        onBack={() => setShowBranch(false)}
+      />
+    );
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,10 +56,9 @@ export function ScreenIdea({ workspaceId, workspaceName, initialValue, onAdvance
           <ArrowRight className="h-4 w-4" />
         </button>
 
-        {/* Branch — wired in Phase 2 */}
         <button
           type="button"
-          onClick={() => onAdvance("__branch__")}
+          onClick={() => setShowBranch(true)}
           className="text-center text-xs text-zinc-600 transition-colors hover:text-zinc-400"
         >
           Not sure? Kove found gaps in {workspaceName} →
