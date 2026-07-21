@@ -104,6 +104,20 @@ export function FeatureCard({ feature, workspaceId, onPatch, onDelete }: Props) 
         </p>
       )}
 
+      {/* Tier assignments */}
+      {feature.tierFeatures && feature.tierFeatures.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1">
+          {feature.tierFeatures.map((tf) => (
+            <span
+              key={tf.tier.id}
+              className="rounded-full border border-amber-500/20 bg-amber-500/[0.06] px-1.5 py-0.5 text-[10px] text-amber-400/80"
+            >
+              {tf.tier.name}
+            </span>
+          ))}
+        </div>
+      )}
+
       {/* Build prompt section */}
       <div className="mt-3 border-t border-white/[0.05] pt-2.5">
         <div className="flex items-center justify-between gap-2">

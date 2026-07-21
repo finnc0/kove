@@ -23,7 +23,10 @@ export default async function FeaturesPage({ params }: { params: Params }) {
           idea: true,
           targetUser: true,
           onboardingComplete: true,
-          features: { orderBy: [{ columnId: "asc" }, { priority: "asc" }] },
+          features: {
+            orderBy: [{ columnId: "asc" }, { priority: "asc" }],
+            include: { tierFeatures: { select: { tier: { select: { id: true, name: true } } } } },
+          },
         },
       },
     },

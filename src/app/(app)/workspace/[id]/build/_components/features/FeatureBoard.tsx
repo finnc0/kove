@@ -31,6 +31,7 @@ export interface Feature {
   sourceGap: string | null;
   status: string;
   buildPrompt: string | null;
+  tierFeatures?: { tier: { id: string; name: string } }[];
 }
 
 interface Plan {
