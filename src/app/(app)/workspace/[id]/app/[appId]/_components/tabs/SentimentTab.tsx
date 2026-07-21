@@ -50,32 +50,6 @@ export function SentimentTab({ data }: { data: ReportPageData }) {
         </div>
       )}
 
-      {/* AI synthesis — full three blocks */}
-      {report.aiSynthesis && (
-        <div className="rounded-xl border border-white/[0.06] bg-zinc-900 p-5">
-          <h3 className="mb-4 text-sm font-semibold text-white">Analysis</h3>
-          <div className="space-y-3">
-            {report.aiSynthesis.doesWell && (
-              <div className="rounded-xl border border-white/[0.05] bg-zinc-800/40 p-4">
-                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Does well</p>
-                <p className="text-sm leading-relaxed text-zinc-300">{report.aiSynthesis.doesWell}</p>
-              </div>
-            )}
-            {report.aiSynthesis.fails && (
-              <div className="rounded-xl border border-white/[0.05] bg-zinc-800/40 p-4">
-                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Structural failures</p>
-                <p className="text-sm leading-relaxed text-zinc-300">{report.aiSynthesis.fails}</p>
-              </div>
-            )}
-            {report.aiSynthesis.implication && (
-              <div className="rounded-xl border border-[#2dd4bf]/15 bg-[#2dd4bf]/[0.03] p-4">
-                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-[#2dd4bf]/60">Competitive implication</p>
-                <p className="text-sm leading-relaxed text-zinc-300">{report.aiSynthesis.implication}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
