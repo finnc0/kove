@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Check } from "lucide-react";
 
@@ -13,15 +13,21 @@ interface Props {
 
 export function OnboardingComplete({ workspaceId, onEnter }: Props) {
   const reduced = useReducedMotion();
+  const [exiting, setExiting] = useState(false);
 
-  // Auto-advance after a short pause
   useEffect(() => {
-    const t = setTimeout(onEnter, 1800);
-    return () => clearTimeout(t);
+    // Show the completion state briefly, then fade out and navigate
+    const fadeTimer = setTimeout(() => setExiting(true), 1400);
+    const navTimer = setTimeout(onEnter, 1900);
+    return () => { clearTimeout(fadeTimer); clearTimeout(navTimer); };
   }, [onEnter]);
 
   return (
-    <div className="flex flex-col items-center gap-6 text-center">
+    <motion.div
+      animate={exiting ? { opacity: 0, scale: reduced ? 1 : 0.97 } : { opacity: 1, scale: 1 }}
+      transition={reduced ? { duration: 0 } : { duration: 0.4, ease: EASE }}
+      className="flex flex-col items-center gap-6 text-center"
+    >
       <motion.div
         initial={reduced ? {} : { scale: 0.5, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -39,6 +45,6 @@ export function OnboardingComplete({ workspaceId, onEnter }: Props) {
         <h2 className="text-2xl font-semibold text-white">Your build space is ready.</h2>
         <p className="mt-2 text-sm text-zinc-500">Taking you there now…</p>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }
