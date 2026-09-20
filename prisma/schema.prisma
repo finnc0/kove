@@ -87,6 +87,98 @@ model Workspace {
   canvasNotes        CanvasNote[]
   canvasGroups       CanvasGroup[]
   ideaNodes          IdeaNode[]
+  buildPlan          BuildPlan?
+}
+
+model BuildPlan {
+  id                 String      @id @default(cuid())
+  workspaceId        String      @unique
+  name               String      @default("My App")
+  idea               String?
+  ideaSourceGap      String?
+  targetUser         String?
+  coreValue          String?
+  monetization       String?
+  platform           String?
+  designDirection    String?
+  onboardingComplete Boolean     @default(false)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  workspace          Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  features           Feature[]
+  paywallRules       PaywallRule[]
+  onboardingScreens  OnboardingScreen[]
+  tiers              Tier[]
+}
+
+model Feature {
+  id          String        @id @default(cuid())
+  buildPlanId String
+  title       String
+  description String?
+  category    String        @default("core")
+  priority    Int           @default(0)
+  columnId    String        @default("ideas")
+  sourceGap   String?
+  status      String        @default("planned")
+  buildPrompt String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  buildPlan   BuildPlan     @relation(fields: [buildPlanId], references: [id], onDelete: Cascade)
+  tierFeatures TierFeature[]
+}
+
+model PaywallRule {
+  id              String    @id @default(cuid())
+  buildPlanId     String
+  tierName        String
+  gatedFeatureIds String[]
+  price           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  buildPlan       BuildPlan @relation(fields: [buildPlanId], references: [id], onDelete: Cascade)
+}
+
+model OnboardingScreen {
+  id            String    @id @default(cuid())
+  buildPlanId   String
+  order         Int       @default(0)
+  title         String
+  type          String    @default("custom")
+  purpose       String?
+  wireframeJson Json?
+  aiPrompt      String?
+  paywallTierId String?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  buildPlan     BuildPlan @relation(fields: [buildPlanId], references: [id], onDelete: Cascade)
+  paywallTier   Tier?     @relation(fields: [paywallTierId], references: [id])
+}
+
+model Tier {
+  id           String             @id @default(cuid())
+  buildPlanId  String
+  name         String
+  order        Int                @default(0)
+  prices       Json?
+  notes        String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  buildPlan    BuildPlan          @relation(fields: [buildPlanId], references: [id], onDelete: Cascade)
+  tierFeatures TierFeature[]
+  screens      OnboardingScreen[]
+}
+
+model TierFeature {
+  id        String   @id @default(cuid())
+  tierId    String
+  featureId String
+  createdAt DateTime @default(now())
+  tier      Tier     @relation(fields: [tierId], references: [id], onDelete: Cascade)
+  feature   Feature  @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@unique([tierId, featureId])
 }
 
 model Node {
@@ -140,7 +232,6 @@ model CanvasGroup {
   updatedAt   DateTime @updatedAt
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
-
 
 model ScrapedEstimate {
   id           String   @id @default(cuid())
